@@ -48,15 +48,6 @@ func (l *LimitedBlockstore) PutMany(blocks []blocks.Block) error {
 	cnt := int64(len(blocks))
 	curr := atomic.AddInt64(&l.puts, cnt)
 	if curr > l.limit {
-		if insert := cnt - (curr - l.limit); insert > 0 {
-			// reset counter to limit.
-			atomic.StoreInt64(&l.puts, l.limit)
-
-			// we had _some_ allowance, so insert as many blocks as were
-			// remaining before we subtracted our count.
-			log.Printf("import: progress: %d blocks imported", l.limit)
-			return l.Blockstore.PutMany(blocks[:insert])
-		}
 		return ErrLimitReached
 	}
 

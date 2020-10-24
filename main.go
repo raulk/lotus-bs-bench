@@ -55,7 +55,7 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:  "import-limit",
-				Usage: "number of CIDs to import from the CAR; if absent, we'll import all",
+				Usage: "maximum number of CIDs to import from the CAR; if absent, we'll import all; this is a fuzzy limit (esp. when batch puts are used)",
 			},
 			&cli.StringFlag{
 				Name:  "read-count",
@@ -208,10 +208,13 @@ func doImport(c *cli.Context, bs blockstore.Blockstore, carPath string) (*Manife
 	manifestPath := fmt.Sprintf("%s.manifest", carPath)
 	mbs := ManifestBlockstore(bs, manifestPath)
 
+	now := time.Now()
 	_, err = car.LoadCar(mbs, carFile)
 	if err != nil && err != ErrLimitReached {
 		return nil, fmt.Errorf("import failed: %w", err)
 	}
+
+	log.Printf("import: completed in %s", time.Since(now))
 
 	return mbs.Manifest(), nil
 }

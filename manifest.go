@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"log"
 	"math/rand"
 	"os"
 	"strings"
@@ -73,7 +75,8 @@ func (m *Manifest) Get(count uint64, repeatRate float64, repeatWindow int64) (<-
 				// seek to a random position in the File.
 				pos := rand.Int63n(size)
 				n, err := m.File.ReadAt(buf, pos)
-				if err != nil {
+				if err != nil && err != io.EOF {
+					err = fmt.Errorf("failed to read offset %d (manifest size: %d)", pos, size)
 					errCh <- err
 					return
 				}
@@ -88,14 +91,20 @@ func (m *Manifest) Get(count uint64, repeatRate float64, repeatWindow int64) (<-
 				// pick the middle token.
 				c, err := cid.Decode(splt[1])
 				if err != nil {
+					err = fmt.Errorf("failed to decode CID %s: %w)", splt[1], err)
 					errCh <- err
 					return
 				}
 				cidCh <- c
 				sentUnique++
+
+				// add the CID to the repeat window.
+				window[sentUnique%repeatWindow] = c
 				break
 			}
 		}
+
+		log.Printf("read: CIDs read: total=%d, unique=%d, repeated=%d", sentUnique+sentRepeat, sentUnique, sentRepeat)
 		errCh <- nil
 	}()
 
