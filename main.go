@@ -179,6 +179,11 @@ func run(c *cli.Context) (err error) {
 		}
 	}
 
+	// GC before starting the read.
+	runtime.GC()
+	runtime.GC()
+	runtime.GC()
+
 	if c.Bool("read") {
 		// do the read; if manifest is nil, it means we haven't run the import
 		// task in this execution. Expect to find a manifest alongside the CAR.
