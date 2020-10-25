@@ -3,6 +3,7 @@ module github.com/raulk/lotus-bs-bench
 go 1.15
 
 require (
+	github.com/bmatsuo/lmdb-go v1.8.0
 	github.com/cockroachdb/pebble v0.0.0-20200916222308-4e219a90ba5b
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20190912175916-7055855a373f // indirect
@@ -23,7 +24,6 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4 // indirect
 	github.com/ipfs/go-merkledag v0.3.2 // indirect
 	github.com/ipld/go-car v0.1.1-0.20200923150018-8cdef32e2da4
-	github.com/ledgerwatch/lmdb-go v1.16.0
 	github.com/libp2p/go-libp2p v0.11.0 // indirect
 	github.com/libp2p/go-libp2p-noise v0.1.2 // indirect
 	github.com/libp2p/go-libp2p-record v0.1.3 // indirect

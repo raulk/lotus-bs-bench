@@ -21,6 +21,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/raulk/lotus-bs-bench/bbolt"
+	lmdbbs "github.com/raulk/lotus-bs-bench/lmdb"
 	sqlite3bs "github.com/raulk/lotus-bs-bench/sqlite3"
 )
 
@@ -101,6 +102,13 @@ func run(c *cli.Context) (err error) {
 
 	var bs blockstore.Blockstore
 	switch store {
+	case "lmdb":
+		log.Println("using lmdb blockstore")
+		bs, err = lmdbbs.Open(path)
+		if err != nil {
+			return err
+		}
+
 	case "sqlite3":
 		log.Println("using sqlite3 blockstore")
 		bs, err = sqlite3bs.Open(path, sqlite3bs.Options{})
