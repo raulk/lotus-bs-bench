@@ -38,7 +38,7 @@ func (l *LimitedBlockstore) Put(block blocks.Block) error {
 	if curr > l.limit {
 		return ErrLimitReached
 	}
-	if curr%1000 == 0 {
+	if curr%100000 == 0 {
 		log.Printf("import: progress: %d blocks imported", curr)
 	}
 	return l.Blockstore.Put(block)

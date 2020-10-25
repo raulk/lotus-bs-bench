@@ -269,7 +269,7 @@ func doRead(c *cli.Context, bs blockstore.Blockstore, m *Manifest) error {
 			return fmt.Errorf("read: blockstore get returned an error: %w", err)
 		}
 		i++
-		if i%1000 == 0 {
+		if i%100000 == 0 {
 			log.Printf("read: completed=%d/%d, remaining=%d/%d", i, cnt, cnt-i, cnt)
 		}
 	}
