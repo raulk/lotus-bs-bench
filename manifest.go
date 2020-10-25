@@ -57,7 +57,7 @@ func (m *Manifest) Get(count uint64, repeatRate float64, repeatWindow int64) (<-
 		for remaining := count; remaining > 0; remaining-- {
 			// check if we've already filled the repeat window; if so, draw a
 			// number to compare against the repeat rate.
-			if sentUnique > repeatWindow && rand.Float64() <= repeatRate {
+			if repeatWindow > 0 && sentUnique > repeatWindow && rand.Float64() <= repeatRate {
 				// we are repeating, draw from the repeat window.
 				v := window[rand.Int63n(repeatWindow)]
 				cidCh <- v
@@ -98,8 +98,10 @@ func (m *Manifest) Get(count uint64, repeatRate float64, repeatWindow int64) (<-
 				cidCh <- c
 				sentUnique++
 
-				// add the CID to the repeat window.
-				window[sentUnique%repeatWindow] = c
+				if repeatWindow > 0 {
+					// add the CID to the repeat window.
+					window[sentUnique%repeatWindow] = c
+				}
 				break
 			}
 		}
