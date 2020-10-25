@@ -51,7 +51,7 @@ func (l *LimitedBlockstore) PutMany(blocks []blocks.Block) error {
 		return ErrLimitReached
 	}
 
-	if int(curr/1000) != int((curr-cnt)/1000) {
+	if int(curr/100000) != int((curr-cnt)/100000) {
 		// crossed a 1000 multiple.
 		log.Printf("import: progress: %d blocks imported", curr)
 	}
