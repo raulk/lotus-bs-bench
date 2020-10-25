@@ -3,6 +3,7 @@ package bbolt
 import (
 	"context"
 	"fmt"
+	"math"
 
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
@@ -12,24 +13,36 @@ import (
 
 type Options = bolt.Options
 
-var BlocksBucket = []byte("blocks")
-
 type Blockstore struct {
-	db *bolt.DB
+	db      *bolt.DB
+	buckets [][]byte
 }
 
 var _ blockstore.Blockstore = (*Blockstore)(nil)
 
-func Open(path string, opts *bolt.Options) (*Blockstore, error) {
+func Open(path string, opts *Options) (*Blockstore, error) {
 	db, err := bolt.Open(path, 0666, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open boltdb: %w", err)
 	}
+
+	bs := &Blockstore{
+		db:      db,
+		buckets: make([][]byte, 0, 0xffff),
+	}
+
+	// create all buckets.
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(BlocksBucket)
-		return err
+		for i := 0; i < math.MaxUint16; i++ {
+			b := []byte{byte(i >> 8 & 0xff), byte(i & 0xff)}
+			if _, err := tx.CreateBucketIfNotExists(b); err != nil {
+				return err
+			}
+			bs.buckets = append(bs.buckets, b)
+		}
+		return nil
 	})
-	return &Blockstore{db}, err
+	return bs, err
 }
 
 func (b *Blockstore) Close() error {
@@ -39,8 +52,9 @@ func (b *Blockstore) Close() error {
 func (b *Blockstore) Has(cid cid.Cid) (bool, error) {
 	var exists bool
 	err := b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(BlocksBucket)
-		exists = b.Get(cid.Hash()) != nil
+		h := cid.Hash()
+		b := tx.Bucket(h[:2])
+		exists = b.Get(h) != nil
 		return nil
 	})
 	return exists, err
@@ -49,8 +63,9 @@ func (b *Blockstore) Has(cid cid.Cid) (bool, error) {
 func (b *Blockstore) Get(cid cid.Cid) (blocks.Block, error) {
 	var val []byte
 	err := b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(BlocksBucket)
-		v := b.Get(cid.Hash())
+		h := cid.Hash()
+		b := tx.Bucket(h[:2])
+		v := b.Get(h)
 		if v == nil {
 			return nil
 		}
@@ -70,8 +85,9 @@ func (b *Blockstore) Get(cid cid.Cid) (blocks.Block, error) {
 func (b *Blockstore) GetSize(cid cid.Cid) (int, error) {
 	var size int
 	err := b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(BlocksBucket)
-		v := b.Get(cid.Hash())
+		h := cid.Hash()
+		b := tx.Bucket(h[:2])
+		v := b.Get(h)
 		if v == nil {
 			size = -1
 		} else {
@@ -90,16 +106,18 @@ func (b *Blockstore) GetSize(cid cid.Cid) (int, error) {
 
 func (b *Blockstore) Put(block blocks.Block) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(BlocksBucket)
-		return b.Put(block.Cid().Hash(), block.RawData())
+		h := block.Cid().Hash()
+		b := tx.Bucket(h[:2])
+		return b.Put(h, block.RawData())
 	})
 }
 
 func (b *Blockstore) PutMany(blocks []blocks.Block) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(BlocksBucket)
 		for _, block := range blocks {
-			if err := b.Put(block.Cid().Hash(), block.RawData()); err != nil {
+			h := block.Cid().Hash()
+			b := tx.Bucket(h[:2])
+			if err := b.Put(h, block.RawData()); err != nil {
 				return err
 			}
 		}
@@ -109,8 +127,9 @@ func (b *Blockstore) PutMany(blocks []blocks.Block) error {
 
 func (b *Blockstore) DeleteBlock(cid cid.Cid) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(BlocksBucket)
-		return b.Delete(cid.Hash())
+		h := cid.Hash()
+		b := tx.Bucket(h[:2])
+		return b.Delete(h)
 	})
 }
 
@@ -120,12 +139,14 @@ func (b *Blockstore) AllKeysChan(ctx context.Context) (<-chan cid.Cid, error) {
 		_ = b.db.View(func(tx *bolt.Tx) error {
 			defer close(ch)
 
-			c := tx.Bucket(BlocksBucket).Cursor()
-			for k, _ := c.First(); k != nil; k, _ = c.Next() {
-				if ctx.Err() != nil {
-					return nil // context has fired.
+			for _, b := range b.buckets {
+				c := tx.Bucket(b).Cursor()
+				for k, _ := c.First(); k != nil; k, _ = c.Next() {
+					if ctx.Err() != nil {
+						return nil // context has fired.
+					}
+					ch <- cid.NewCidV1(cid.Raw, k)
 				}
-				ch <- cid.NewCidV1(cid.Raw, k)
 			}
 			return nil
 		})
