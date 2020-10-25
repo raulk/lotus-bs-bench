@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"time"
@@ -18,17 +20,22 @@ import (
 	"github.com/ipld/go-car"
 	"github.com/urfave/cli/v2"
 
+	"github.com/raulk/lotus-bs-bench/bbolt"
 	sqlite3bs "github.com/raulk/lotus-bs-bench/sqlite3"
 )
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	app := &cli.App{
 		Name:  "bs-bench",
 		Usage: "Benchmark performance of IPFS blockstores",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "store-type",
-				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb'",
+				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb'",
 				Required: true,
 			},
 			&cli.StringFlag{
@@ -95,14 +102,23 @@ func run(c *cli.Context) (err error) {
 	var bs blockstore.Blockstore
 	switch store {
 	case "sqlite3":
-		log.Print("using sqlite3 blockstore")
+		log.Println("using sqlite3 blockstore")
 		bs, err = sqlite3bs.Open(path, sqlite3bs.Options{})
 		if err != nil {
 			return err
 		}
 
+	case "boltdb":
+		log.Println("using boltdb blockstore")
+		bs, err = bbolt.Open(path, &bbolt.Options{
+			NoSync: true,
+		})
+		if err != nil {
+			return err
+		}
+
 	case "badger":
-		log.Print("using badger blockstore")
+		log.Println("using badger blockstore")
 
 		// prepare the blockstore.
 		bdgOpt := badger.DefaultOptions
@@ -120,7 +136,8 @@ func run(c *cli.Context) (err error) {
 		bs = blockstore.NewBlockstore(ds)
 
 	case "pebble":
-		log.Print("using pebble blockstore")
+		log.Println("using pebble blockstore")
+
 		cache := 512
 		ds, err := pebbleds.NewDatastore(path, &pebble.Options{
 			// Pebble has a single combined cache area and the write

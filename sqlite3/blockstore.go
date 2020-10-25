@@ -33,7 +33,6 @@ var initDDL = []string{
 	// spacing not important
 	`CREATE TABLE IF NOT EXISTS blocks (
 		mh TEXT NOT NULL PRIMARY KEY,
-		codec INTEGER NOT NULL,
 		bytes BLOB NOT NULL
 	) WITHOUT ROWID`,
 
@@ -60,9 +59,9 @@ var statements = [...]string{
 	stmtHas:       "SELECT EXISTS (SELECT 1 FROM blocks WHERE mh = ?)",
 	stmtGet:       "SELECT bytes FROM blocks WHERE mh = ?",
 	stmtGetSize:   "SELECT LENGTH(bytes) FROM blocks WHERE mh = ?",
-	stmtPut:       "INSERT OR IGNORE INTO blocks (mh, codec, bytes) VALUES (?, ?, ?)",
+	stmtPut:       "INSERT OR IGNORE INTO blocks (mh, bytes) VALUES (?, ?)",
 	stmtDelete:    "DELETE FROM blocks WHERE mh = ?",
-	stmtSelectAll: "SELECT mh, codec FROM blocks",
+	stmtSelectAll: "SELECT mh FROM blocks",
 }
 
 // Blockstore is a sqlite backed IPLD blockstore, highly optimized and
@@ -158,12 +157,11 @@ func (b *Blockstore) GetSize(cid cid.Cid) (int, error) {
 
 func (b *Blockstore) Put(block blocks.Block) error {
 	var (
-		cid   = block.Cid()
-		codec = block.Cid().Prefix().Codec
-		data  = block.RawData()
+		cid  = block.Cid()
+		data = block.RawData()
 	)
 
-	_, err := b.prepared[stmtPut].Exec(keyFromCid(cid), codec, data)
+	_, err := b.prepared[stmtPut].Exec(keyFromCid(cid), data)
 	if err != nil {
 		err = fmt.Errorf("failed to put block with CID %s into sqlite3 blockstore: %w", cid, err)
 	}
@@ -201,14 +199,13 @@ func (b *Blockstore) AllKeysChan(ctx context.Context) (<-chan cid.Cid, error) {
 
 		for q.Next() {
 			var mh string
-			var codec uint64
 
-			switch err := q.Scan(&mh, &codec); {
+			switch err := q.Scan(&mh); {
 			case err == nil:
 				if mh, err := base64.RawStdEncoding.DecodeString(mh); err != nil {
 					log.Printf("failed to parse multihash when querying all keys in sqlite3 blockstore: %s", err)
 				} else {
-					ret <- cid.NewCidV1(codec, mh)
+					ret <- cid.NewCidV1(cid.Raw, mh)
 				}
 			case ctx.Err() != nil:
 				return // context was cancelled
