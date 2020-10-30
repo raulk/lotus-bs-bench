@@ -13,6 +13,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	"github.com/cockroachdb/pebble/bloom"
 	bdg "github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v2/options"
 	"github.com/dustin/go-humanize"
 	badger "github.com/ipfs/go-ds-badger2"
 	pebbleds "github.com/ipfs/go-ds-pebble"
@@ -135,6 +136,12 @@ func run(c *cli.Context) (err error) {
 		bdgOpt.Options.SyncWrites = false
 		bdgOpt.Options.Truncate = true
 		bdgOpt.Options.DetectConflicts = false
+		bdgOpt.Options.KeepL0InMemory = true
+		bdgOpt.Options.ValueLogLoadingMode = options.FileIO
+		bdgOpt.Options.ValueThreshold = 128
+		bdgOpt.Options.BloomFalsePositive = 0.0001
+		bdgOpt.Options.LoadBloomsOnOpen = true
+		bdgOpt.Options.NumVersionsToKeep = 1
 
 		ds, err := badger.NewDatastore(path, &bdgOpt)
 		if err != nil {
