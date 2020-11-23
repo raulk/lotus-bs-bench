@@ -22,6 +22,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/raulk/lotus-bs-bench/bbolt"
+	gonudb "github.com/raulk/lotus-bs-bench/gonudb"
 	leveldbbs "github.com/raulk/lotus-bs-bench/leveldb"
 	lmdbbs "github.com/raulk/lotus-bs-bench/lmdb"
 	sqlite3bs "github.com/raulk/lotus-bs-bench/sqlite3"
@@ -185,6 +186,14 @@ func run(c *cli.Context) (err error) {
 		}
 		defer ds.Close()
 		bs = blockstore.NewBlockstore(ds)
+
+	case "gonudb":
+		log.Println("using gonudb blockstore")
+		bs, err = gonudb.Open(path, nil)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	// close the blockstore if it supports closing (sqlite3 does).

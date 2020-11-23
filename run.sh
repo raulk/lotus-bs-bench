@@ -70,3 +70,19 @@ go run . --car $CAR_PATH --store-type pebble --store-path /data/tmp_pebble_10M -
 ## pebble all
 go run . --car $CAR_PATH --store-type pebble --store-path /data/tmp_pebble_all --read=false 2>&1 | tee ~/pebble.all.import.out
 go run . --car $CAR_PATH --store-type pebble --store-path /data/tmp_pebble_all --import=false 2>&1 --read-repeat-rate=0.25 --read-repeat-window=1000 | tee ~/pebble.all.read.out
+
+
+## gonudb 1M
+rm /data/tmp_gonudb_1M.*
+go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_1M --import-limit=1M --read=false 2>&1 | tee ~/gonudb.1M.import.out
+go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_1M --import-limit=1M --import=false --read-repeat-rate=0.25 --read-repeat-window=1000 2>&1 | tee ~/gonudb.1M.read.out
+
+## gonudb 10M
+rm /data/tmp_gonudb_10M.*
+go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_10M --import-limit=10M --read=false 2>&1 | tee ~/gonudb.10M.import.out
+go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_10M --import-limit=10M --import=false --read-repeat-rate=0.25 --read-repeat-window=1000 2>&1 | tee ~/gonudb.10M.read.out
+
+## gonudb all
+rm /data/tmp_gonudb_all.*
+go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_all --read=false 2>&1 | tee ~/gonudb.all.import.out
+go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_all --import=false 2>&1 --read-repeat-rate=0.25 --read-repeat-window=1000 | tee ~/gonudb.all.read.out
