@@ -22,6 +22,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/raulk/lotus-bs-bench/bbolt"
+	leveldbbs "github.com/raulk/lotus-bs-bench/leveldb"
 	lmdbbs "github.com/raulk/lotus-bs-bench/lmdb"
 	sqlite3bs "github.com/raulk/lotus-bs-bench/sqlite3"
 )
@@ -37,12 +38,12 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "store-type",
-				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb'",
+				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb', 'leveldb'",
 				Required: true,
 			},
 			&cli.StringFlag{
 				Name:      "store-path",
-				Usage:     "path to the store on disk; may have to be a directory or a File, depending on the store",
+				Usage:     "path to the store on disk; may have to be a directory or a file, depending on the store",
 				Required:  true,
 				TakesFile: true,
 			},
@@ -113,6 +114,13 @@ func run(c *cli.Context) (err error) {
 	case "sqlite3":
 		log.Println("using sqlite3 blockstore")
 		bs, err = sqlite3bs.Open(path, sqlite3bs.Options{})
+		if err != nil {
+			return err
+		}
+
+	case "leveldb":
+		log.Println("using leveldb blockstore")
+		bs, err = leveldbbs.Open(path, leveldbbs.DefaultOptions("benchmark"))
 		if err != nil {
 			return err
 		}
