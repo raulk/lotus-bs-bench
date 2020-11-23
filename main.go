@@ -190,7 +190,11 @@ func run(c *cli.Context) (err error) {
 
 	case "gonudb":
 		log.Println("using gonudb blockstore")
-		bs, err = gonudb.Open(path, nil)
+		bs, err = gonudb.Open(path, &gonudb.Options{
+			BackgroundSyncInterval: 20 * time.Second,
+			DisableRecoveryLog:     true,
+			DisableSync:            true,
+		})
 		if err != nil {
 			return err
 		}
