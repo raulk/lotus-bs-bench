@@ -26,6 +26,7 @@ import (
 	leveldbbs "github.com/raulk/lotus-bs-bench/leveldb"
 	lmdbbs "github.com/raulk/lotus-bs-bench/lmdb"
 	sqlite3bs "github.com/raulk/lotus-bs-bench/sqlite3"
+	sth "github.com/raulk/lotus-bs-bench/sth"
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "store-type",
-				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb', 'leveldb'",
+				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb', 'leveldb', 'sth'",
 				Required: true,
 			},
 			&cli.StringFlag{
@@ -116,6 +117,13 @@ func run(c *cli.Context) (err error) {
 	case "sqlite3":
 		log.Println("using sqlite3 blockstore")
 		bs, err = sqlite3bs.Open(path, sqlite3bs.Options{})
+		if err != nil {
+			return err
+		}
+
+	case "sth":
+		log.Println("using storethehash blockstore")
+		bs, err = sthbs.Open(path, sqlite3bs.Options{})
 		if err != nil {
 			return err
 		}
