@@ -170,7 +170,8 @@ func (b *Blockstore) HashOnRead(_ bool) {
 
 func (b *Blockstore) Close() error {
 	if b.db != nil {
-		C.close(b.db)
+		// TODO vmx 2020-12-09: Make this work again. The storethehash FFI currenly doens't support closing.
+		//C.close(b.db)
 		b.db = nil
 	}
 	return nil
