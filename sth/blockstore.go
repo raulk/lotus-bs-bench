@@ -1,9 +1,9 @@
 package sthbs
 
 /*
-#include "/usr/include/storethehash_db_cid/storethehash_db_cid.h"
-#cgo pkg-config: /usr/lib/pkgconfig/storethehash_db_cid.pc --static
-#cgo LDFLAGS: -L/usr/lib -lstorethehash_db_cid -lm -luuid -ltbb -laio -lpthread -lgcc -lstdc++ -lstdc++fs
+#include "storethehash_db_cid/storethehash_db_cid.h"
+#cgo pkg-config: storethehash_db_cid
+#cgo LDFLAGS: -lstorethehash_db_cid
 */
 import "C"
 import (
