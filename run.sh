@@ -86,3 +86,19 @@ go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_10M -
 rm /data/tmp_gonudb_all.*
 go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_all --read=false 2>&1 | tee ~/gonudb.all.import.out
 go run . --car $CAR_PATH --store-type gonudb --store-path /data/tmp_gonudb_all --import=false 2>&1 --read-repeat-rate=0.25 --read-repeat-window=1000 | tee ~/gonudb.all.read.out
+
+
+## storethehash 1M
+rm /data/tmp_storethehash_1M.*
+go run . --car $CAR_PATH --store-type storethehash --store-path /data/tmp_storethehash_1M --import-limit=1M --read=false 2>&1 | tee ~/storethehash.1M.import.out
+go run . --car $CAR_PATH --store-type storethehash --store-path /data/tmp_storethehash_1M --import-limit=1M --import=false --read-repeat-rate=0.25 --read-repeat-window=1000 2>&1 | tee ~/storethehash.1M.read.out
+
+## storethehash 10M
+rm /data/tmp_storethehash_10M.*
+go run . --car $CAR_PATH --store-type storethehash --store-path /data/tmp_storethehash_10M --import-limit=10M --read=false 2>&1 | tee ~/storethehash.10M.import.out
+go run . --car $CAR_PATH --store-type storethehash --store-path /data/tmp_storethehash_10M --import-limit=10M --import=false --read-repeat-rate=0.25 --read-repeat-window=1000 2>&1 | tee ~/storethehash.10M.read.out
+
+## storethehash all
+rm /data/tmp_storethehash_all.*
+go run . --car $CAR_PATH --store-type storethehash --store-path /data/tmp_storethehash_all --read=false 2>&1 | tee ~/storethehash.all.import.out
+go run . --car $CAR_PATH --store-type storethehash --store-path /data/tmp_storethehash_all --import=false 2>&1 --read-repeat-rate=0.25 --read-repeat-window=1000 | tee ~/storethehash.all.read.out

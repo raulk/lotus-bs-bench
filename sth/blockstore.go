@@ -20,7 +20,7 @@ import (
 // Blockstore is a sqlite backed IPLD blockstore, highly optimized and
 // customized for IPLD query and write patterns.
 type Blockstore struct {
-	db *C.StorethehashDb
+	db *C.StoreTheHashCidDb
 }
 
 var _ blockstore.Blockstore = (*Blockstore)(nil)
@@ -77,7 +77,7 @@ func (b *Blockstore) GetSize(cid cid.Cid) (int, error) {
 	key, keylen := keyFromCid(cid)
 	defer C.free(key)
 
-	size := C.get_len(b.db, (*C.char)(key), (C.ulong)(keylen), 1)
+	size := C.get_len(b.db, (*C.char)(key), (C.ulong)(keylen))
 	if size == -1 {
 		return -1, blockstore.ErrNotFound
 	}
