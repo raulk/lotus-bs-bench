@@ -25,7 +25,9 @@ import (
 	gonudb "github.com/raulk/lotus-bs-bench/gonudb"
 	leveldbbs "github.com/raulk/lotus-bs-bench/leveldb"
 	lmdbbs "github.com/raulk/lotus-bs-bench/lmdb"
+	nullbs "github.com/raulk/lotus-bs-bench/null"
 	sqlite3bs "github.com/raulk/lotus-bs-bench/sqlite3"
+	sthbs "github.com/raulk/lotus-bs-bench/sth"
 )
 
 func main() {
@@ -40,7 +42,7 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "store-type",
-				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb', 'leveldb'",
+				Usage:    "store type to use: 'badger', 'sqlite3', 'pebble', 'lmdb', 'boltdb', 'leveldb', 'storethehash', 'null'",
 				Required: true,
 			},
 			&cli.StringFlag{
@@ -116,6 +118,20 @@ func run(c *cli.Context) (err error) {
 	case "sqlite3":
 		log.Println("using sqlite3 blockstore")
 		bs, err = sqlite3bs.Open(path, sqlite3bs.Options{})
+		if err != nil {
+			return err
+		}
+
+	case "storethehash":
+		log.Println("using storethehash blockstore")
+		bs, err = sthbs.Open(path, sthbs.Options{})
+		if err != nil {
+			return err
+		}
+
+	case "null":
+		log.Println("using null blockstore")
+		bs, err = nullbs.Open(path, nullbs.Options{})
 		if err != nil {
 			return err
 		}
